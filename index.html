@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Gestione Calcetto Pro</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f3f4f6;
+      -webkit-tap-highlight-color: transparent;
+      color: #1f2937;
+      padding-bottom: 40px;
+    }
+    input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea { font-size: 16px !important; }
+    input, select, textarea { font-family: inherit; }
+    summary::-webkit-details-marker { display: none; }
+    summary { list-style: none; }
+    summary::after { content: '\25BC'; color: #6b7280; transition: transform 0.3s ease; font-size: 11px; }
+    details[open] summary::after { transform: rotate(180deg); }
+    .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+
+    .banner {
+      position: sticky; top: 0; z-index: 10;
+      background: #facc15; color: #713f12;
+      text-align: center; padding: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-weight: 700; font-size: 17px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .wrap { padding: 0 16px; max-width: 480px; margin: 0 auto; }
+    section.card {
+      background: #fff; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden; margin-top: 16px;
+    }
+    section.card summary {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px; font-weight: 700; font-size: 17px; cursor: pointer;
+      background: #f9fafb; outline: none;
+    }
+    .card-body { padding: 16px; border-top: 1px solid #f3f4f6; }
+    .left { border-left: 4px solid #3b82f6; }
+    .left-green { border-left: 4px solid #22c55e; }
+
+    .btn {
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+      width: 100%; border: none; border-radius: 10px; cursor: pointer;
+      font-weight: 700; font-family: inherit; padding: 12px 16px; font-size: 15px;
+      transition: background 0.2s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .b-blue { background: #2563eb; color: #fff; }
+    .b-green { background: #16a34a; color: #fff; }
+    .b-greenlight { background: #22c55e; color: #fff; }
+    .b-dark { background: #1f2937; color: #fff; }
+    .b-yellow { background: #eab308; color: #fff; }
+    .b-red { background: #dc2626; color: #fff; }
+    .b-light { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .b-small { font-size: 13px; padding: 8px 10px; }
+
+    .field { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; outline: none; background: #fff; }
+    .field:focus { border-color: #3b82f6; }
+    label.lbl { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    .mini { font-size: 12px; color: #6b7280; }
+    .divider { border-top: 1px solid #f3f4f6; padding-top: 12px; margin-top: 12px; }
+    .hidden { display: none !important; }
+    .sub-section-title { font-weight: 600; color: #374151; margin: 6px 0; }
+
+    ul.saldi { list-style: none; }
+    ul.saldi li { padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+    .saldo-nome { font-weight: 700; font-size: 16px; }
+    .badge-saldo { padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+    .pos { background: #dcfce7; color: #166534; }
+    .neg { background: #fee2e2; color: #991b1b; }
+    .zero { background: #f3f4f6; color: #374151; }
+    .stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .icon-btn { border: none; border-radius: 6px; padding: 5px 7px; font-size: 12px; cursor: pointer; }
+
+    .pl-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 10px; }
+    .partita-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .referto-row { display: flex; flex-direction: column; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding-top: 4px; margin-top: 4px; border-top: 1px solid #e5e7eb; }
+    .stat-input { width: 100%; padding: 4px; border: 1px solid #d1d5db; border-radius: 6px; text-align: center; font-size: 13px; outline: none; }
+    .stat-input.y { background: #fefce8; border-color: #fde047; }
+    .stat-input.r { background: #fef2f2; border-color: #fecaca; }
+    .stat-input.b { background: #eff6ff; border-color: #bfdbfe; }
+    .p-check { display: flex; justify-content: space-between; align-items: center; }
+    .p-check label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; cursor: pointer; }
+
+    .formazione-box { font-size: 12px; color: #1d4ed8; background: #eff6ff; padding: 8px; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 12px; white-space: pre-wrap; }
+    .esterno-tag { display: inline-block; font-size: 11px; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 0 4px; }
+    .esterni-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; min-height: 40px; }
+    .esterni-wrap span.tag { display: flex; align-items: center; gap: 8px; background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+    .esterni-wrap .x { color: #dc2626; font-weight: 700; background: none; border: none; font-size: 14px; cursor: pointer; padding: 0 2px; }
+
+    .arch-item { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .arch-item:active { transform: scale(0.97); }
+    .arch-risultato { background: #2563eb; color: #fff; font-weight: 700; padding: 6px 12px; border-radius: 8px; font-size: 14px; }
+
+    .empty { color: #6b7280; text-align: center; font-style: italic; padding: 16px 0; }
+    .modal-hidden { display: none; }
+    #modal-backdrop { position: fixed; inset: 0; z-index: 40; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s; }
+    #modal-backdrop.modal-open { display: flex; }
+    #modal-backdrop.in { opacity: 1; }
+    #modal-box { background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); padding: 20px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
+    #modal-title { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+    #modal-message { color: #4b5563; margin-bottom: 16px; white-space: pre-wrap; }
+    #modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 12px; }
+    #modal-buttons button { padding: 10px 16px; border-radius: 10px; border: none; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .mb-cancel { background: #e5e7eb; color: #1f2937; }
+    .mb-confirm { background: #2563eb; color: #fff; }
+
+    .riga-ricarica { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .riga-ricarica select { flex: 3; }
+    .riga-ricarica input { flex: 2; }
+    .del-btn { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #dc2626; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; }
+
+    .chk-list label { display: flex; align-items: center; gap: 10px; padding: 8px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 4px; cursor: pointer; font-size: 14px; }
+    .chk-box { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 8px; background: #fff; }
+    .chk-box.off { opacity: 0.5; filter: grayscale(1); background: #f3f4f6; }
+
+    .install-hint { font-size: 13px; color: #374151; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px; }
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f2937; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 60; pointer-events: none; max-width: 90vw; text-align: center; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #btn-install { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="banner" id="banner-fondo">
+    <span>&#127974; Fondo di Squadra - <span id="nome-squadra-label">Pane Sardo di Sil&igrave;</span></span>
+    <span id="fondo-valore">...</span>
+  </div>
+
+  <div class="wrap">
+
+    <!-- 1. STATO GIOCATORI -->
+    <section class="card">
+      <details open>
+        <summary>
+          <div>&#128202; Stato Squadra <button onclick="mostraInfo(event,'Stato Squadra','Visualizza i saldi attuali e le statistiche di ogni giocatore. Permette di copiare i report individuali, il riepilogo saldi per WhatsApp e modificare o cancellare i giocatori. I dati sono salvati solo su questo dispositivo.')" class="icon-btn" style="background:#dbeafe;color:#2563eb;font-weight:900;">i</button></div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <ul id="lista-saldi" class="saldi"><li class="empty">Caricamento...</li></ul>
+          <button onclick="copiaRiepilogoSquadra()" class="btn b-greenlight" style="margin-top:12px;">&#128172; Copia Saldi e Apri WhatsApp</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 2. GESTIONE ISCRIZIONI -->
+    <section class="card">
+      <details>
+        <summary class="left">
+          <div>&#127903;&#65039; Gestione Iscrizioni <button onclick="mostraInfo(event,'Gestione Iscrizioni','Registra i versamenti per la quota di iscrizione stagionale. Se disattivi un giocatore non potr&agrave; essere convocato finch&eacute; non salda la quota o non lo riattivi.')" class="icon-btn" style="background:#dbeafe;color:#2563eb;font-weight:900;">i</button></div>
+          <span></span>
+        </summary>
+        <div class="card-body" style="background:#f9fafb;">
+          <div id="lista-iscrizioni"></div>
+          <button onclick="copiaReportIscrizioni()" class="btn b-blue" style="margin-top:12px;">&#128203; Copia Report Iscrizioni e Apri WhatsApp</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3. CREA CONVOCAZIONE -->
+    <section class="card">
+      <details>
+        <summary>
+          <div>&#9917; Crea Convocazione <button onclick="mostraInfo(event,'Crea Convocazione','Programma una nuova partita: definisci squadre, data, ora, campo e costo. Seleziona i convocati (quelli inattivi sono bloccati).')" class="icon-btn" style="background:#dbeafe;color:#2563eb;font-weight:900;">i</button></div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <div class="row">
+            <div>
+              <label class="lbl">Squadra di Casa:</label>
+              <input type="text" id="partita-squadraA" value="Pane Sardo di Sil&igrave;" class="field">
+            </div>
+            <div>
+              <label class="lbl">Squadra Ospite:</label>
+              <input type="text" id="partita-squadraB" placeholder="Avversari" class="field">
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label class="lbl">Data:</label>
+              <input type="date" id="data-partita" class="field">
+            </div>
+            <div>
+              <label class="lbl">Ora:</label>
+              <input type="time" id="ora-partita" class="field">
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label class="lbl">Campo da gioco:</label>
+            <select id="select-campo" onchange="gestisciCampoNuovo('select-campo','nuovo-campo')" class="field" style="background:#fff;">
+              <option value="">-- Seleziona Campo --</option>
+            </select>
+            <input type="text" id="nuovo-campo" class="field hidden" style="margin-top:8px;" placeholder="Inserisci nome del nuovo campo">
+          </div>
+          <div style="margin-top:10px;">
+            <label class="lbl">Costo totale campo (&euro;):</label>
+            <input type="number" id="costo-campo" class="field" placeholder="es. 50">
+          </div>
+          <div class="sub-section-title" style="margin-top:14px;">Seleziona Convocati e Ruolo:</div>
+          <div class="mini" style="margin-bottom:8px;">Allenatore e Tifoso saranno esclusi dal calcolo della quota. <b style="color:#dc2626;">I giocatori inattivi non possono essere selezionati.</b></div>
+          <div id="lista-convocati"></div>
+          <button onclick="salvaEGeneraPartita()" class="btn b-blue" style="margin-top:12px;">Crea Evento &amp; Copia Invito WhatsApp</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 4. CREA AMICHEVOLE -->
+    <section class="card">
+      <details>
+        <summary class="left-green">
+          <div>&#129309; Crea Amichevole <button onclick="mostraInfo(event,'Crea Amichevole','Configura una partita amichevole interna. Scegli i partecipanti e componi le squadre in un passaggio successivo.')" class="icon-btn" style="background:#dcfce7;color:#16a34a;font-weight:900;">i</button></div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <div class="row">
+            <div>
+              <label class="lbl">Squadra A:</label>
+              <input type="text" id="amichevole-squadraA" value="Pane Sardo di Sil&igrave;" class="field">
+            </div>
+            <div>
+              <label class="lbl">Squadra B:</label>
+              <input type="text" id="amichevole-squadraB" placeholder="Avversari" class="field">
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label class="lbl">Data:</label>
+              <input type="date" id="amichevole-data" class="field">
+            </div>
+            <div>
+              <label class="lbl">Ora:</label>
+              <input type="time" id="amichevole-ora" class="field">
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label class="lbl">Campo da gioco:</label>
+            <select id="amichevole-select-campo" onchange="gestisciCampoNuovo('amichevole-select-campo','amichevole-nuovo-campo')" class="field" style="background:#fff;">
+              <option value="">-- Seleziona Campo --</option>
+            </select>
+            <input type="text" id="amichevole-nuovo-campo" class="field hidden" style="margin-top:8px;" placeholder="Inserisci nome del nuovo campo">
+          </div>
+          <div style="margin-top:10px;">
+            <label class="lbl">Costo Totale (&euro;):</label>
+            <input type="number" id="amichevole-costo" class="field" placeholder="es. 60">
+          </div>
+          <div class="divider">
+            <label class="sub-section-title">1. Seleziona Rosa Interna:</label>
+            <div id="amichevole-lista-interni" class="chk-list" style="max-height:190px; overflow-y:auto; padding: 2px;"></div>
+          </div>
+          <div class="divider">
+            <label class="sub-section-title">2. Aggiungi Giocatori Esterni:</label>
+            <div class="row" style="margin-bottom:8px;">
+              <input type="text" id="amichevole-input-esterno" placeholder="Nome Esterno" class="field" style="font-size:14px !important;">
+              <button onclick="aggiungiGiocatoreEsterno()" class="btn b-dark" style="width:56px; flex:none; font-size:18px;">+</button>
+            </div>
+            <div id="amichevole-badge-esterni" class="esterni-wrap">
+              <span class="mini">Nessun giocatore esterno aggiunto.</span>
+            </div>
+          </div>
+          <button onclick="preparaFormazioneAmichevole()" class="btn b-green" style="margin-top:12px;">Procedi alla Formazione &#128203;</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 5. INSERISCI REFERTO -->
+    <section class="card">
+      <details open id="sezione-referto">
+        <summary>
+          <div>&#128221;<span id="badge-partite" class="hidden" style="background:#dc2626;color:#fff;font-size:12px;border-radius:999px;padding:0 7px;margin-left:2px;">0</span> Inserisci Referto</div>
+          <span></span>
+        </summary>
+        <div class="card-body" id="contenitore-partite-aperte">
+          <p class="empty">Nessuna partita da refertare.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 6. ARCHIVIO RISULTATI -->
+    <section class="card">
+      <details id="sezione-archivio">
+        <summary>
+          <div>&#128218; Archivio Risultati</div>
+          <span></span>
+        </summary>
+        <div class="card-body" id="contenitore-archivio">
+          <p class="empty">Nessuna partita in archivio.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 7. RICARICA CONTO -->
+    <section class="card">
+      <details>
+        <summary>
+          <div>&#128176; Registra Ricarica Conto</div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <div id="container-ricariche-massive"></div>
+          <button onclick="aggiungiRigaRicarica()" class="btn b-light b-small" style="margin-top:4px;">+ Aggiungi Riga Giocatore</button>
+          <button onclick="salvaRicaricheMassive()" class="btn b-green" style="margin-top:8px;">&#128190; Salva Tutte le Ricariche</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 8. GESTIONE ROSA -->
+    <section class="card">
+      <details>
+        <summary>
+          <div>&#128100; Gestione Rosa</div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <label class="lbl">Nome nuovo giocatore:</label>
+          <input type="text" id="nuovo-nome" class="field" placeholder="Inserisci nome">
+          <button onclick="aggiungiNuovo()" class="btn b-dark" style="margin-top:10px;">Aggiungi alla Rosa</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 9. SPESA COMUNE -->
+    <section class="card">
+      <details>
+        <summary>
+          <div>&#128722; Dividi Spesa Comune</div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <div class="row">
+            <input type="number" id="importo-spesa" class="field" placeholder="Costo &euro;" min="0" step="0.01" style="flex:1;">
+            <input type="text" id="causale-spesa" class="field" placeholder="Causale (es. Pallone)" style="flex:2;">
+          </div>
+          <div class="sub-section-title" style="font-size:14px; margin-top:10px;">Dividi la spesa tra:</div>
+          <div class="row" style="margin-bottom:8px;">
+            <button onclick="selezionaTuttiSpesa(true)" class="btn b-light b-small">Seleziona Tutti</button>
+            <button onclick="selezionaTuttiSpesa(false)" class="btn b-small" style="background:#e5e7eb;color:#374151;">Deseleziona Tutti</button>
+          </div>
+          <div id="lista-spesa-condivisa" class="chk-list" style="max-height:240px; overflow-y:auto;"></div>
+          <button onclick="salvaSpesaCondivisa()" class="btn b-yellow" style="margin-top:10px;">Dividi Spesa e Aggiorna Saldi</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 10. IMPOSTAZIONI E CONNESSIONE -->
+    <section class="card">
+      <details id="sezione-impostazioni">
+        <summary>
+          <div>&#9881;&#65039; Impostazioni e Connessione</div>
+          <span></span>
+        </summary>
+        <div class="card-body">
+          <label class="lbl">URL della Web App Google (collegamento al Foglio condiviso):</label>
+          <input type="text" id="url-server" class="field" style="font-size:13px !important;" placeholder="https://script.google.com/macros/s/.../exec">
+          <button onclick="salvaURLServer()" class="btn b-blue" style="margin-top:8px;">&#128279; Salva URL e Connetti</button>
+          <label class="lbl" style="margin-top:14px;">Nome della tua squadra:</label>
+          <input type="text" id="nome-squadra" class="field" value="Pane Sardo di Sil&igrave;">
+          <button onclick="salvaNomeSquadra()" class="btn b-blue" style="margin-top:8px;">&#128190; Salva Nome Squadra</button>
+          <div class="divider">
+            <button onclick="esportaSnapshot()" class="btn b-dark">&#128230; Scarica Copia Dati (JSON)</button>
+          </div>
+          <div class="install-hint" style="margin-top:14px;">
+            &#128274; L'app lavora in autonomia (nessuna AI): legge e scrive <b>direttamente sul Foglio Google condiviso</b>, quindi tu e l'altra persona usate gli stessi dati. Installatela entrambi e incollate lo stesso URL qui sopra.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </div>
+
+  <textarea id="appunti-nascosti" style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true"></textarea>
+
+  <div id="modal-backdrop" class="modal-overlay modal-hidden">
+    <div id="modal-box">
+      <h3 id="modal-title">Titolo</h3>
+      <p id="modal-message" class="hidden"></p>
+      <div id="modal-custom-html"></div>
+      <div id="modal-buttons"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    /* ============ COLLEGAMENTO AL FOGLIO GOOGLE (lettura e scrittura condivisa) ============ */
+    const URL_KEY = 'calcettoProUrlServer';
+    let seqJsonp = 0;
+
+    function leggiURLServer() {
+      return (localStorage.getItem(URL_KEY) || '').trim().replace(/\?.*$/, '');
+    }
+    function salvaURLServerVal(url) {
+      localStorage.setItem(URL_KEY, url.trim().replace(/\?.*$/, ''));
+    }
+
+    function showLoading() {
+      document.getElementById('fondo-valore').innerText = '\u23F3';
+    }
+
+    function chiamaJsonp(base, fn, args) {
+      return new Promise((resolve, reject) => {
+        const cb = '__cb_calcetto_' + (++seqJsonp) + '_' + Date.now();
+        const script = document.createElement('script');
+        const timer = setTimeout(() => { pulisci(); reject(new Error('Nessuna risposta dal Foglio (timeout). Riprova.')); }, 25000);
+        const pulisci = () => { clearTimeout(timer); delete window[cb]; if (script.parentNode) script.parentNode.removeChild(script); };
+        window[cb] = (dati) => { pulisci(); resolve(dati); };
+        script.onerror = () => { pulisci(); reject(new Error('Impossibile contattare il Foglio Google: controlla internet o l\u2019URL in Impostazioni.')); };
+        script.src = base + '?fn=' + encodeURIComponent(fn) + '&args=' + encodeURIComponent(JSON.stringify(args)) + '&callback=' + cb;
+        document.body.appendChild(script);
+      });
+    }
+
+    async function esegui(fn, args) {
+      const base = leggiURLServer();
+      if (!base) {
+        throw new Error("App non collegata: apri Impostazioni e incolla l\u2019URL della Web App di Google (termina con /exec).");
+      }
+      let risposta;
+      try {
+        const res = await fetch(base, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ fn: fn, args: args }),
+          redirect: 'follow'
+        });
+        risposta = await res.text();
+      } catch (ePost) {
+        risposta = await chiamaJsonp(base, fn, args);
+      }
+      if (typeof risposta !== 'string') return risposta;
+      let dati;
+      try { dati = JSON.parse(risposta); }
+      catch (eParse) { throw new Error('Risposta non valida dal Foglio: controlla l\u2019URL in Impostazioni.'); }
+      return dati;
+    }
+
+    function eseguiUI(fn, args, dopo) {
+      bloccaInterfaccia();
+      showLoading();
+      esegui(fn, args)
+        .then(dati => { aggiornaUI(dati); if (dopo) dopo(dati); })
+        .catch(err => { sbloccaInterfaccia(); showModal('Errore', err.message, 'alert'); });
+    }
+
+    /* ============ UI ============ */
+    window.datiGlobali = null;
+    window.esterniAmichevole = [];
+    window.tempAmichevolePayload = null;
+    window.htmlSelectGiocatori = '<option value="">-- Seleziona Giocatore --</option>';
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function jsStr(s) {
+      return esc(String(s).replace(/'/g, "\\'"));
+    }
+
+    function aggiornaUI(dati) {
+      if (dati.erroreCritico) { showModal("Errore", dati.erroreCritico, "alert"); sbloccaInterfaccia(); return; }
+      window.datiGlobali = dati;
+
+      document.getElementById('fondo-valore').style.color = dati.fondoCassa >= 0 ? '#166534' : '#991b1b';
+      document.getElementById('fondo-valore').innerText = Dalefondo(dati.fondoCassa);
+
+      let htmlSaldi = '', htmlConvocati = '', htmlAmichevoleInterni = '', htmlSpesa = '', htmlIscrizioni = '';
+      let htmlSelect = '<option value="">-- Seleziona Giocatore --</option>';
+
+      const giocatoriOrdinati = [...dati.giocatori].sort((a, b) => b.saldo - a.saldo);
+
+      giocatoriOrdinati.forEach(g => {
+        const coloreBg = g.saldo > 0 ? 'pos' : (g.saldo < 0 ? 'neg' : 'zero');
+        const subTot = (g.golSubitiAzione || 0) + (g.golSubitiRigore || 0) + (g.golSubitiPiazzato || 0);
+        const nomeSicuro = jsStr(g.nome);
+        const badgeAttivo = g.attivo ? '' : ' <span class="esterno-tag" style="color:#991b1b;background:#fef2f2;border-color:#fecaca;">Inattivo</span>';
+
+        htmlSaldi += `
+        <li>
+          <div class="p-check">
+            <div class="saldo-nome">${esc(g.nome)}${badgeAttivo}</div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="badge-saldo ${coloreBg}">${g.saldo > 0 ? '+' : ''}${g.saldo.toFixed(2)} \u20AC</span>
+              <button onclick="apriModificaGiocatore('${nomeSicuro}')" class="icon-btn" style="background:#dbeafe;color:#1d4ed8;" title="Modifica Giocatore">\u270F\uFE0F</button>
+              <button onclick="scaricaReport('${nomeSicuro}')" class="icon-btn" style="background:#dcfce7;color:#15803d;" title="Scarica Report">\uD83D\uDCAC</button>
+              <button onclick="chiediConfermaEliminazione('${nomeSicuro}')" class="icon-btn" style="background:#fee2e2;color:#dc2626;" title="Elimina Giocatore">\uD83D\uDDD1\uFE0F</button>
+            </div>
+          </div>
+          <div class="stats">
+            <span>\u26BD Gol: <b>${g.gol}</b></span>
+            <span>\uD83D\uDC5F Assist: <b>${g.assist || 0}</b></span>
+            <span>\uD83D\uDFE8 Gialli: <b>${g.ammonizioni}</b></span>
+            <span style="color:#dc2626;">\uD83D\uDFE5 Rossi: <b>${g.espulsioni || 0}</b></span>
+            ${subTot > 0 ? `<span>\uD83E\uDDE4 Subiti: <b>${subTot}</b></span>` : ''}
+          </div>
+        </li>`;
+
+        htmlIscrizioni += `
+        <div class="pl-card" style="${g.attivo ? '' : 'background:#fef2f2;'}">
+          <div class="p-check" style="margin-bottom:6px;">
+            <span style="font-weight:700;">${esc(g.nome)}</span>
+            <span style="border-radius:6px; padding:4px 8px; font-size:12px; font-weight:700; color:#fff; background:${g.attivo ? '#22c55e' : '#ef4444'};">${g.attivo ? '\u2705 Attivo' : '\u26D4 Inattivo'}</span>
+          </div>
+          <div class="mini" style="margin-bottom:8px;">Quota versata: <b style="color:#111;">${(g.quotaIscrizione || 0).toFixed(2)} \u20AC</b></div>
+          <div class="row">
+            <div class="row" style="flex:2; min-width:150px;">
+              <input type="number" id="quota-isc-${nomeSicuro}" placeholder="\u20AC" class="field" style="font-size:14px !important; padding:8px;" min="0" step="0.01">
+              <button onclick="salvaQuotaIscrizione('${nomeSicuro}')" class="btn b-blue b-small" style="width:auto; flex:none; padding:8px 14px;">+ Versa</button>
+            </div>
+            <button onclick="cambiaStatoAttivazione('${nomeSicuro}', ${!g.attivo})" class="btn b-small" style="flex:1; min-width:110px; ${g.attivo ? 'background:#fff;color:#dc2626;border:1px solid #fecaca;' : 'background:#dcfce7;color:#15803d;border:1px solid #86efac;'}">
+              ${g.attivo ? 'Disattiva' : 'Attiva Ora'}
+            </button>
+          </div>
+        </div>`;
+
+        const opacitaBox = g.attivo ? '' : 'off';
+        const checkDisabilitato = g.attivo ? '' : 'disabled';
+        const ruoloVisualizzato = g.ultimoRuolo;
+
+        htmlConvocati += `
+        <div class="chk-box ${opacitaBox}">
+          <label style="display:flex; align-items:center; gap:10px; cursor:${g.attivo ? 'pointer' : 'not-allowed'}; font-weight:600; font-size:14px;">
+            <input type="checkbox" class="chk-giocatore" style="width:18px;height:18px;" value="${esc(g.nome)}" ${checkDisabilitato}>
+            <span>${esc(g.nome)}</span>
+            ${!g.attivo ? '<span class="mini" style="color:#dc2626;font-weight:700;">Inattivo</span>' : ''}
+          </label>
+          <select id="ruolo-${esc(g.nome)}" class="field" style="width:auto; padding:6px; font-size:13px !important; background:#f9fafb;" ${checkDisabilitato}>
+            <option value="" ${!ruoloVisualizzato ? 'selected' : ''}>Ruolo...</option>
+            <option value="Portiere" ${ruoloVisualizzato === 'Portiere' ? 'selected' : ''}>Portiere</option>
+            <option value="Centrale" ${ruoloVisualizzato === 'Centrale' ? 'selected' : ''}>Centrale</option>
+            <option value="Laterale" ${ruoloVisualizzato === 'Laterale' ? 'selected' : ''}>Laterale</option>
+            <option value="Pivot" ${ruoloVisualizzato === 'Pivot' ? 'selected' : ''}>Pivot</option>
+            <option value="Allenatore" ${ruoloVisualizzato === 'Allenatore' ? 'selected' : ''}>Allenatore</option>
+            <option value="Tifoso" ${ruoloVisualizzato === 'Tifoso' ? 'selected' : ''}>Tifoso</option>
+          </select>
+        </div>`;
+
+        htmlAmichevoleInterni += `
+        <label>
+          <input type="checkbox" class="chk-amichevole-giocatore" style="width:16px;height:16px;" value="${esc(g.nome)}">
+          <span style="font-weight:500;">${esc(g.nome)}</span>
+        </label>`;
+
+        htmlSpesa += `
+        <label style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" class="chk-spesa" style="width:16px;height:16px;" value="${esc(g.nome)}">
+            <span style="font-weight:500;">${esc(g.nome)}</span>
+          </div>
+          <span class="badge-saldo ${coloreBg}" style="font-size:12px;">${g.saldo.toFixed(2)}\u20AC</span>
+        </label>`;
+
+        htmlSelect += `<option value="${esc(g.nome)}">${esc(g.nome)}</option>`;
+      });
+
+      window.htmlSelectGiocatori = htmlSelect;
+
+      const optCampi = (dati.campi || []).map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('') + '<option value="NUOVO" style="font-weight:bold;">+ Aggiungi nuovo campo...</option>';
+      document.getElementById('select-campo').innerHTML = optCampi;
+      document.getElementById('amichevole-select-campo').innerHTML = optCampi;
+
+      document.getElementById('lista-saldi').innerHTML = htmlSaldi || "<li class='empty'>Nessun giocatore in rosa.</li>";
+      document.getElementById('lista-iscrizioni').innerHTML = htmlIscrizioni || "<div class='empty' style='padding:0;'>Nessun giocatore.</div>";
+      document.getElementById('lista-convocati').innerHTML = htmlConvocati;
+      document.getElementById('amichevole-lista-interni').innerHTML = htmlAmichevoleInterni;
+      document.getElementById('lista-spesa-condivisa').innerHTML = htmlSpesa;
+
+      document.querySelectorAll('.giocatori-select').forEach(el => {
+        const val = el.value;
+        el.innerHTML = window.htmlSelectGiocatori;
+        if (val) el.value = val;
+      });
+
+      if (document.getElementById('container-ricariche-massive').children.length === 0) aggiungiRigaRicarica();
+
+      const contenitorePartite = document.getElementById('contenitore-partite-aperte');
+      const badge = document.getElementById('badge-partite');
+
+      if (dati.partiteAperte && dati.partiteAperte.length > 0) {
+        badge.innerText = dati.partiteAperte.length;
+        badge.classList.remove('hidden');
+        contenitorePartite.innerHTML = dati.partiteAperte.map(p => {
+          const listaRefertoHTML = p.convocati.map(nome => {
+            const infoG = dati.giocatori.find(x => x.nome === nome);
+            const ruoloAttr = infoG ? infoG.ultimoRuolo : "";
+            const isEsterno = nome.includes("(Esterno)");
+            const labelEsterno = isEsterno ? ' <span class="esterno-tag">Esterno</span>' : '';
+            const htmlSubiti = (ruoloAttr === 'Portiere' && !isEsterno) ? `
+              <div class="sub-grid">
+                <input type="number" id="subAzione-${p.id}-${esc(nome)}" placeholder="\uD83E\uDDE4 Azione" class="stat-input b">
+                <input type="number" id="subRigore-${p.id}-${esc(nome)}" placeholder="\uD83E\uDDE4 Rigore" class="stat-input b">
+                <input type="number" id="subPiazzato-${p.id}-${esc(nome)}" placeholder="\uD83E\uDDE4 Puniz" class="stat-input b">
+              </div>` : '';
+
+            return `
+            <div class="referto-row">
+              <div class="p-check" style="margin-bottom:6px;">
+                <label>
+                  <input type="checkbox" class="chk-presente-${p.id}" style="width:16px;height:16px;" value="${esc(nome)}" checked> ${esc(nome)} ${labelEsterno}
+                </label>
+                <label class="mini" style="display:flex; align-items:center; gap:4px;">Paga
+                  <input type="checkbox" id="paga-${p.id}-${esc(nome)}" style="width:14px;height:14px;" checked title="Paga la quota">
+                </label>
+              </div>
+              <div class="stat-grid">
+                <input type="number" id="gol-${p.id}-${esc(nome)}" placeholder="\u26BD" class="stat-input">
+                <input type="number" id="assist-${p.id}-${esc(nome)}" placeholder="\uD83D\uDC5F" class="stat-input">
+                <input type="number" id="amm-${p.id}-${esc(nome)}" placeholder="\uD83D\uDFE8" class="stat-input y">
+                <input type="number" id="rosso-${p.id}-${esc(nome)}" placeholder="\uD83D\uDFE5" class="stat-input r">
+              </div>
+              ${htmlSubiti}
+            </div>`;
+          }).join('');
+
+          const parts = p.dettagli.split('\n\n');
+          const intestazione = parts[0];
+          const formazioniHTML = parts.length > 1 ? `<div class="formazione-box" style="background:#fff;">${esc(parts.slice(1).join('\n\n'))}</div>` : '';
+
+          return `
+          <div class="partita-box">
+            <div style="font-weight:700; color:#1e3a8a; margin-bottom:6px;">${esc(intestazione)}</div>
+            ${formazioniHTML}
+            <button onclick="apriPopupSceltaFormazione('${p.id}')" class="btn b-blue b-small" style="margin-bottom:10px;">\uD83D\uDCCB Copia Formazione per Chat</button>
+            <div class="row" style="margin-bottom:10px;">
+              <input type="text" id="risultato-${p.id}" placeholder="Risultato (es. 5-4)" class="field" style="font-size:14px !important; padding:8px;">
+              <input type="number" id="costo-${p.id}" value="${p.costo}" class="field" style="font-size:14px !important; padding:8px;">
+            </div>
+            <div style="max-height:280px; overflow-y:auto;">${listaRefertoHTML}</div>
+            <button onclick="eseguiChiusuraPartita('${p.id}')" class="btn b-green" style="margin-top:12px;">Chiudi Partita &amp; Addebita</button>
+            <button onclick="chiediAnnullaPartita('${p.id}')" class="btn b-small" style="margin-top:8px; background:#fee2e2; color:#dc2626;">\uD83D\uDDD1\uFE0F Annulla in attesa</button>
+          </div>`;
+        }).join('');
+      } else {
+        badge.classList.add('hidden');
+        contenitorePartite.innerHTML = '<p class="empty">Nessuna partita in attesa.</p>';
+      }
+
+      const contenitoreArchivio = document.getElementById('contenitore-archivio');
+      if (dati.partiteChiuse && dati.partiteChiuse.length > 0) {
+        contenitoreArchivio.innerHTML = [...dati.partiteChiuse].reverse().map(p => `
+          <div onclick="apriPopupPartita('${p.id}')" class="arch-item">
+            <div>
+              <div style="font-weight:700; font-size:14px;">${esc(p.dettagli.split('\n\n')[0])}</div>
+              <div class="mini">\uD83D\uDCB0 ${p.costo}\u20AC | \uD83D\uDC65 ${p.referto.length} presenti</div>
+            </div>
+            <div class="arch-risultato">${esc(p.risultato || 'N/D')}</div>
+          </div>`).join('');
+      } else {
+        contenitoreArchivio.innerHTML = '<p class="empty">Nessuna partita in archivio.</p>';
+      }
+      sbloccaInterfaccia();
+    }
+
+    function Dalefondo(fondoCassa) {
+      return `${fondoCassa > 0 ? '+' : ''}${fondoCassa.toFixed(2)} \u20AC`;
+    }
+
+    function mostraInfo(event, titolo, descrizione) {
+      event.stopPropagation();
+      event.preventDefault();
+      showModal("\uD83D\uDCA1 " + titolo, descrizione, "alert");
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function bloccaInterfaccia() {
+      const el = document.getElementById('container-ricariche-massive');
+      if (el) el.style.opacity = '0.7';
+    }
+    function sbloccaInterfaccia() {
+      const el = document.getElementById('container-ricariche-massive');
+      if (el) el.style.opacity = '1';
+    }
+
+    /* --- RICARICA MASSIVA --- */
+    function aggiungiRigaRicarica() {
+      const container = document.getElementById('container-ricariche-massive');
+      const div = document.createElement('div');
+      div.className = 'riga-ricarica';
+      div.innerHTML = `
+        <select class="giocatori-select field" style="padding:10px; font-size:14px !important;"></select>
+        <input type="number" class="importo-massivo field" style="padding:10px; font-size:14px !important;" placeholder="\u20AC (es. 10)" min="0.01" step="0.01">
+        <button onclick="this.parentElement.remove()" class="del-btn">\u00D7</button>`;
+      div.querySelector('select').innerHTML = window.htmlSelectGiocatori;
+      container.appendChild(div);
+    }
+
+    function salvaRicaricheMassive() {
+      const righe = document.querySelectorAll('.riga-ricarica');
+      const payload = [];
+      righe.forEach(riga => {
+        const nome = riga.querySelector('.giocatori-select').value;
+        const importo = parseFloat(riga.querySelector('.importo-massivo').value);
+        if (nome && !isNaN(importo) && importo > 0) payload.push({ nome, importo });
+      });
+      if (payload.length === 0) return showModal("Attenzione", "Inserisci almeno un giocatore e un importo valido.", "alert");
+      eseguiUI('versaQuoteMassive', [payload], () => {
+        document.getElementById('container-ricariche-massive').innerHTML = '';
+      });
+    }
+
+    function salvaQuotaIscrizione(nomeOriginale) {
+      const input = document.getElementById(`quota-isc-${nomeOriginale}`);
+      const importo = parseFloat(input.value);
+      if (isNaN(importo) || importo <= 0) return showModal("Errore", "Inserisci un importo valido.", "alert");
+      eseguiUI('versaQuotaIscrizione', [nomeOriginale, importo]);
+    }
+
+    function cambiaStatoAttivazione(nomeOriginale, nuovoStato) {
+      eseguiUI('cambiaStatoGiocatore', [nomeOriginale, nuovoStato]);
+    }
+
+    function copiaReportIscrizioni() {
+      const nomeSq = leggiNomeSquadra();
+      let out = "\uD83D\uDCCB *" + nomeSq + " - REPORT QUOTE ISCRIZIONE* \uD83D\uDCCB\n\n\u2705 *Giocatori Attivi:*\n";
+      const g = window.datiGlobali.giocatori;
+      const attivi = g.filter(x => x.attivo).sort((a, b) => a.nome.localeCompare(b.nome));
+      const inattivi = g.filter(x => !x.attivo).sort((a, b) => a.nome.localeCompare(b.nome));
+      let totaleQuote = 0;
+      attivi.forEach(x => { const q = x.quotaIscrizione || 0; totaleQuote += q; out += `- ${x.nome}: ${q.toFixed(2)}\u20AC\n`; });
+      if (inattivi.length > 0) {
+        out += "\n\u26D4 *Giocatori Inattivi (Sospesi):*\n";
+        inattivi.forEach(x => { const q = x.quotaIscrizione || 0; totaleQuote += q; out += `- ${x.nome}: ${q.toFixed(2)}\u20AC\n`; });
+      }
+      out += `\n\uD83D\uDCB0 *TOTALE RACCOLTO: ${totaleQuote.toFixed(2)}\u20AC*`;
+      copiaNegliAppunti(out, "Report Iscrizioni copiato negli appunti!");
+    }
+
+    function gestisciCampoNuovo(idSelect, idInput) {
+      const s = document.getElementById(idSelect);
+      document.getElementById(idInput).classList.toggle('hidden', s.value !== 'NUOVO');
+    }
+
+    function salvaEGeneraPartita() {
+      const squadraA = document.getElementById('partita-squadraA').value.trim() || leggiNomeSquadra();
+      const squadraB = document.getElementById('partita-squadraB').value.trim() || "";
+      const data = document.getElementById('data-partita').value;
+      const ora = document.getElementById('ora-partita').value;
+      const selectCampo = document.getElementById('select-campo').value;
+      const campo = selectCampo === 'NUOVO' ? document.getElementById('nuovo-campo').value.trim() : selectCampo;
+      const costo = parseFloat(document.getElementById('costo-campo').value) || 0;
+
+      if (!data || !ora || !campo) return showModal("Errore", "Dati mancanti (data, ora o campo).", "alert");
+
+      const selCheckboxes = Array.from(document.querySelectorAll('.chk-giocatore:checked'));
+      if (selCheckboxes.length === 0) return showModal("Errore", "Nessun convocato selezionato.", "alert");
+
+      const sel = selCheckboxes.map(c => c.value);
+      const mappaRuoli = {};
+      sel.forEach(n => mappaRuoli[n] = document.getElementById('ruolo-' + n).value);
+
+      const dataObj = new Date(data + 'T12:00:00');
+      let dataLeggibile = dataObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+      dataLeggibile = dataLeggibile.charAt(0).toUpperCase() + dataLeggibile.slice(1);
+
+      const matchLabel = squadraB ? `${squadraA} vs ${squadraB}` : squadraA;
+      const dettagli = `${matchLabel} - ${dataLeggibile} ore ${ora}, ${campo}`;
+
+      const pagantiConvocati = sel.filter(nome => {
+        const r = mappaRuoli[nome];
+        return r !== 'Allenatore' && r !== 'Tifoso';
+      });
+      const quotaSingolo = pagantiConvocati.length > 0 ? (costo / pagantiConvocati.length).toFixed(2) : (0).toFixed(2);
+
+      const ordineRuoli = ["Portiere", "Centrale", "Laterale", "Pivot", "Allenatore"];
+      const gruppiConvocati = { "Portiere": [], "Centrale": [], "Laterale": [], "Pivot": [], "Allenatore": [], "Tifoso": [], "Altro": [] };
+      sel.forEach(nome => {
+        const r = mappaRuoli[nome] || "Altro";
+        if (!gruppiConvocati[r]) gruppiConvocati[r] = [];
+        gruppiConvocati[r].push(nome);
+      });
+
+      let txt = `\u26BD *${matchLabel.toUpperCase()}* \u26BD\n\uD83D\uDCC5 ${dataLeggibile} ore ${ora}\n\uD83D\uDCCD ${campo}\n\uD83D\uDCB0 Quota: ${quotaSingolo}\u20AC a testa\n\n*Convocati (${sel.length}):*\n`;
+      ordineRuoli.forEach(ruolo => {
+        if (gruppiConvocati[ruolo] && gruppiConvocati[ruolo].length > 0) {
+          const emojiRuolo = ruolo === 'Portiere' ? '\uD83E\uDDE4' : (ruolo === 'Centrale' ? '\uD83D\uDEE1\uFE0F' : (ruolo === 'Laterale' ? '\u26A1' : (ruolo === 'Pivot' ? '\uD83C\uDFAF' : '\uD83D\uDCCB')));
+          txt += `\n${emojiRuolo} *${ruolo}s*:\n`;
+          gruppiConvocati[ruolo].sort().forEach(n => { txt += `- ${n}\n`; });
+        }
+      });
+      if (gruppiConvocati["Tifoso"].length + gruppiConvocati["Altro"].length > 0) {
+        txt += `\n\uD83D\uDCCC *Altri/Senza Ruolo*:\n`;
+        [...gruppiConvocati["Tifoso"], ...gruppiConvocati["Altro"]].sort().forEach(n => { txt += `- ${n}\n`; });
+      }
+
+      eseguiUI('creaPartita', [costo, sel, dettagli, campo, mappaRuoli], () => {
+        copiaNegliAppunti(txt, "Evento creato e invito WhatsApp copiato con successo!");
+      });
+    }
+
+    function aggiungiGiocatoreEsterno() {
+      const input = document.getElementById('amichevole-input-esterno');
+      const nome = input.value.trim();
+      if (!nome) return showModal("Attenzione", "Inserisci un nome valido per l'esterno.", "alert");
+      const nomeEsternoCompleto = nome + " (Esterno)";
+      if (window.esterniAmichevole.includes(nomeEsternoCompleto)) {
+        return showModal("Errore", "Questo giocatore esterno \u00E8 gi\u00E0 presente.", "alert");
+      }
+      window.esterniAmichevole.push(nomeEsternoCompleto);
+      input.value = '';
+      renderizzaEsterni();
+    }
+
+    function rimuoviEsterno(nome) {
+      window.esterniAmichevole = window.esterniAmichevole.filter(n => n !== nome);
+      renderizzaEsterni();
+    }
+
+    function renderizzaEsterni() {
+      const cont = document.getElementById('amichevole-badge-esterni');
+      if (window.esterniAmichevole.length === 0) {
+        cont.innerHTML = '<span class="mini">Nessun giocatore esterno aggiunto.</span>';
+        return;
+      }
+      cont.innerHTML = window.esterniAmichevole.map(n => `
+        <span class="tag">
+          ${esc(n)}
+          <button onclick="rimuoviEsterno('${jsStr(n)}')" class="x">\u00D7</button>
+        </span>`).join('');
+    }
+
+    function preparaFormazioneAmichevole() {
+      const data = document.getElementById('amichevole-data').value;
+      const ora = document.getElementById('amichevole-ora').value;
+      const sA = document.getElementById('amichevole-squadraA').value.trim() || leggiNomeSquadra();
+      const sB = document.getElementById('amichevole-squadraB').value.trim() || "Squadra B";
+      const selectCampo = document.getElementById('amichevole-select-campo').value;
+      const campo = selectCampo === 'NUOVO' ? document.getElementById('amichevole-nuovo-campo').value.trim() : selectCampo;
+      const costo = document.getElementById('amichevole-costo').value || 0;
+
+      if (!data || !ora || !campo) return showModal("Errore", "Seleziona data, ora e campo da gioco.", "alert");
+
+      const interni = Array.from(document.querySelectorAll('.chk-amichevole-giocatore:checked')).map(c => c.value);
+      const tuttiConvocati = [...interni, ...window.esterniAmichevole];
+      if (tuttiConvocati.length < 2) return showModal("Errore", "Seleziona almeno 2 partecipanti per fare le squadre.", "alert");
+
+      window.tempAmichevolePayload = { data, ora, squadraA: sA, squadraB: sB, campo, costo, giocatori: tuttiConvocati };
+
+      let htmlFormazione = `<p class="mini" style="margin-bottom:8px;">Assegna ogni giocatore a una squadra:</p><div style="max-height:50vh; overflow-y:auto;">`;
+      tuttiConvocati.forEach((nome, i) => {
+        const defSq = i < tuttiConvocati.length / 2 ? 'A' : 'B';
+        htmlFormazione += `
+          <div class="p-check" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:8px; margin-bottom:6px;">
+            <span style="font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:45%;">${esc(nome)}</span>
+            <select id="sel-sq-${i}" class="field" style="width:auto; padding:6px; font-size:13px !important; background:#fff;">
+              <option value="A" ${defSq === 'A' ? 'selected' : ''}>\uD83D\uDC55 ${esc(sA)}</option>
+              <option value="B" ${defSq === 'B' ? 'selected' : ''}>\uD83D\uDC55 ${esc(sB)}</option>
+            </select>
+          </div>`;
+      });
+      htmlFormazione += `</div><button onclick="confermaESalvaAmichevole()" class="btn b-green" style="margin-top:14px;">\uD83D\uDCBE Salva Amichevole &amp; Copia Formazioni</button>`;
+
+      showModalHtml("Crea Formazioni", htmlFormazione);
+    }
+
+    function confermaESalvaAmichevole() {
+      const formA = [], formB = [];
+      const payload = window.tempAmichevolePayload;
+      payload.giocatori.forEach((nome, i) => {
+        const val = document.getElementById(`sel-sq-${i}`).value;
+        if (val === 'A') formA.push(nome); else formB.push(nome);
+      });
+      payload.formazioni = { A: formA, B: formB };
+
+      closeModal();
+
+      window.esterniAmichevole = [];
+      renderizzaEsterni();
+      document.getElementById('amichevole-squadraB').value = '';
+      document.getElementById('amichevole-costo').value = '';
+      document.querySelectorAll('.chk-amichevole-giocatore').forEach(chk => chk.checked = false);
+
+      const quota = payload.giocatori.length > 0 ? (payload.costo / payload.giocatori.length).toFixed(2) : 0;
+      const dataObj = new Date(payload.data + 'T12:00:00');
+      let dataLeggibile = dataObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+      dataLeggibile = dataLeggibile.charAt(0).toUpperCase() + dataLeggibile.slice(1);
+
+      let txt = `\u26BD *${payload.squadraA} vs ${payload.squadraB}* \u26BD\n\uD83D\uDCC5 ${dataLeggibile} ore ${payload.ora}\n\uD83D\uDCCD Campo: ${payload.campo}\n\uD83D\uDCB0 Quota: ${quota}\u20AC a testa\n\n`;
+      txt += `\uD83D\uDC55 *${payload.squadraA}*\n`;
+      formA.forEach(n => txt += `- ${n}\n`);
+      txt += `\n\uD83D\uDC55 *${payload.squadraB}*\n`;
+      formB.forEach(n => txt += `- ${n}\n`);
+
+      eseguiUI('creaAmichevole', [payload], () => {
+        setTimeout(() => copiaNegliAppunti(txt, "Partita creata e formazione copiata negli appunti!"), 400);
+      });
+    }
+
+    function eseguiChiusuraPartita(id) {
+      const presenti = Array.from(document.querySelectorAll(`.chk-presente-${id}:checked`)).map(c => c.value);
+      const referto = presenti.map(nome => ({
+        nome,
+        gol: document.getElementById(`gol-${id}-${nome}`).value || 0,
+        assist: document.getElementById(`assist-${id}-${nome}`).value || 0,
+        amm: document.getElementById(`amm-${id}-${nome}`).value || 0,
+        rossi: document.getElementById(`rosso-${id}-${nome}`).value || 0,
+        subitiAzione: document.getElementById(`subAzione-${id}-${nome}`)?.value || 0,
+        subitiRigore: document.getElementById(`subRigore-${id}-${nome}`)?.value || 0,
+        subitiPiazzato: document.getElementById(`subPiazzato-${id}-${nome}`)?.value || 0,
+        pagaQuota: document.getElementById(`paga-${id}-${nome}`).checked
+      }));
+      eseguiUI('chiudiPartita', [id, document.getElementById(`costo-${id}`).value, presenti, document.getElementById('risultato-' + id).value, referto]);
+    }
+
+    function apriPopupPartita(id) {
+      const p = window.datiGlobali.partiteChiuse.find(x => x.id === id);
+      const parts = p.dettagli.split('\n\n');
+      const htmlFormazioniStr = parts.length > 1 ? `<div class="formazione-box">${esc(parts.slice(1).join('\n\n'))}</div>` : '';
+
+      let htmlModale = `
+      <div style="text-align:center; margin-bottom:12px;">
+        <div style="display:inline-block; background:#2563eb; color:#fff; font-size:20px; font-weight:900; padding:8px 24px; border-radius:999px; margin-bottom:8px;">${esc(p.risultato || 'N/D')}</div>
+      </div>
+      ${htmlFormazioniStr}
+      <div>
+        ${p.referto.map(r => {
+          const s = [];
+          if (r.gol > 0) s.push(`\u26BD ${r.gol}`);
+          if (r.assist > 0) s.push(`\uD83D\uDC5F ${r.assist}`);
+          const sA = parseInt(r.subitiAzione || 0), sR = parseInt(r.subitiRigore || 0), sP = parseInt(r.subitiPiazzato || 0);
+          const subTot = sA + sR + sP;
+          if (subTot > 0) {
+            const det = [];
+            if (sA > 0) det.push(`${sA} Azione`);
+            if (sR > 0) det.push(`${sR} Rigore`);
+            if (sP > 0) det.push(`${sP} Puniz`);
+            s.push(`<span class="mini">\uD83E\uDDE4 -${subTot} (${det.join(', ')})</span>`);
+          }
+          return `<div class="p-check" style="background:#f9fafb; border-radius:6px; padding:8px; margin-bottom:4px;"><span>${esc(r.nome)}</span><span style="font-weight:700;">${s.join(' | ')}</span></div>`;
+        }).join('')}
+      </div>
+      <button onclick="copiaRefertoWhatsApp('${id}')" class="btn b-greenlight" style="margin-top:16px;">\uD83D\uDCAC Condividi Referto su WhatsApp</button>
+
+      <div class="divider" style="display:flex; gap:10px; margin-top:14px;">
+        <button onclick="apriModificaPartitaArchiviata('${id}')" class="btn b-yellow" style="flex:1;">\u270F\uFE0F Modifica</button>
+        <button onclick="chiediAnnullaPartitaArchiviata('${id}')" class="btn b-red" style="flex:1;">\uD83D\uDDD1\uFE0F Elimina</button>
+      </div>`;
+
+      showModalHtml(`Partita: ${parts[0]}`, htmlModale);
+    }
+
+    function chiediAnnullaPartitaArchiviata(id) {
+      showModal("Attenzione: Annullamento in corso", "Annullare questa partita d'archivio restituir\u00E0 le quote ai giocatori e rimuover\u00E0 le statistiche guadagnate.\nSei sicuro?", "confirm", () => {
+        eseguiUI('annullaPartitaArchiviata', [id]);
+      });
+    }
+
+    function apriModificaPartitaArchiviata(id) {
+      const p = window.datiGlobali.partiteChiuse.find(x => x.id === id);
+      if (!p) return;
+
+      let htmlModale = `
+        <div class="row" style="margin-bottom:10px;">
+          <div style="flex:1;">
+            <label class="lbl">Risultato (es. 5-4)</label>
+            <input type="text" id="mod-risultato-${id}" value="${esc(p.risultato || '')}" class="field" style="padding:8px; font-size:14px !important;">
+          </div>
+          <div style="flex:1;">
+            <label class="lbl">Costo Totale (\u20AC)</label>
+            <input type="number" id="mod-costo-${id}" value="${p.costo}" class="field" style="padding:8px; font-size:14px !important;">
+          </div>
+        </div>
+        <div style="max-height:280px; overflow-y:auto;">`;
+
+      p.referto.forEach(r => {
+        const isEsterno = r.nome.includes("(Esterno)");
+        const labelEsterno = isEsterno ? ' <span class="esterno-tag">Esterno</span>' : '';
+        htmlModale += `
+        <div class="referto-row referto-row-${id}" data-nome="${esc(r.nome)}">
+          <div class="p-check" style="margin-bottom:6px;">
+            <label style="font-weight:600; font-size:14px;">${esc(r.nome)} ${labelEsterno}</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="mini">Paga?</span>
+              <input type="checkbox" class="mod-paga" style="width:16px;height:16px;" ${r.pagaQuota ? 'checked' : ''}>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <input type="number" class="mod-gol stat-input" value="${r.gol || 0}" title="Gol">
+            <input type="number" class="mod-assist stat-input" value="${r.assist || 0}" title="Assist">
+            <input type="number" class="mod-amm stat-input y" value="${r.amm || 0}" title="Gialli">
+            <input type="number" class="mod-rosso stat-input r" value="${r.rossi || 0}" title="Rossi">
+          </div>
+          <div class="sub-grid">
+            <input type="number" class="mod-subAzione stat-input b" value="${r.subitiAzione || 0}" title="Subiti Azione">
+            <input type="number" class="mod-subRigore stat-input b" value="${r.subitiRigore || 0}" title="Subiti Rigore">
+            <input type="number" class="mod-subPiazzato stat-input b" value="${r.subitiPiazzato || 0}" title="Subiti Piazzato">
+          </div>
+        </div>`;
+      });
+
+      htmlModale += `</div>
+      <button onclick="salvaModifichePartitaArchiviata('${id}')" class="btn b-blue" style="margin-top:12px;">\uD83D\uDCBE Ricalcola Saldi e Salva</button>`;
+
+      showModalHtml(`Modifica Referto`, htmlModale);
+    }
+
+    function salvaModifichePartitaArchiviata(id) {
+      const nuovoRisultato = document.getElementById(`mod-risultato-${id}`).value;
+      const nuovoCosto = parseFloat(document.getElementById(`mod-costo-${id}`).value) || 0;
+
+      const nuovoReferto = [];
+      document.querySelectorAll(`.referto-row-${id}`).forEach(row => {
+        nuovoReferto.push({
+          nome: row.getAttribute('data-nome'),
+          pagaQuota: row.querySelector('.mod-paga').checked,
+          gol: row.querySelector('.mod-gol').value || 0,
+          assist: row.querySelector('.mod-assist').value || 0,
+          amm: row.querySelector('.mod-amm').value || 0,
+          rossi: row.querySelector('.mod-rosso').value || 0,
+          subitiAzione: row.querySelector('.mod-subAzione').value || 0,
+          subitiRigore: row.querySelector('.mod-subRigore').value || 0,
+          subitiPiazzato: row.querySelector('.mod-subPiazzato').value || 0
+        });
+      });
+
+      closeModal();
+      eseguiUI('modificaPartitaArchiviata', [id, nuovoCosto, nuovoRisultato, nuovoReferto]);
+    }
+
+    function apriModificaGiocatore(nome) {
+      const g = window.datiGlobali.giocatori.find(x => x.nome === nome);
+      if (!g) return;
+      const nomeOriginaleCodificato = jsStr(g.nome);
+
+      const htmlModale = `
+        <div style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+          <div>
+            <label class="lbl">Nome Giocatore</label>
+            <input type="text" id="edit-nome" value="${esc(g.nome)}" class="field">
+          </div>
+          <div>
+            <label class="lbl">Saldo Finanziario (\u20AC)</label>
+            <input type="number" id="edit-saldo" value="${g.saldo}" step="0.01" class="field">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label class="lbl">\u26BD Gol</label>
+              <input type="number" id="edit-gol" value="${g.gol}" class="field" style="padding:8px;">
+            </div>
+            <div>
+              <label class="lbl">\uD83D\uDC5F Assist</label>
+              <input type="number" id="edit-assist" value="${g.assist || 0}" class="field" style="padding:8px;">
+            </div>
+            <div>
+              <label class="lbl">\uD83D\uDFE8 Ammonizioni</label>
+              <input type="number" id="edit-gialli" value="${g.ammonizioni}" class="field" style="padding:8px; background:#fefce8;">
+            </div>
+            <div>
+              <label class="lbl">\uD83D\uDFE5 Espulsioni</label>
+              <input type="number" id="edit-rossi" value="${g.espulsioni || 0}" class="field" style="padding:8px; background:#fef2f2;">
+            </div>
+          </div>
+          <div style="border-top:1px solid #f3f4f6; padding-top:12px;">
+            <label class="lbl">\uD83E\uDDE4 Gol Subiti (Solo Portieri)</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+              <div>
+                <label class="mini">Azione</label>
+                <input type="number" id="edit-sub-azione" value="${g.golSubitiAzione || 0}" class="field" style="padding:6px; text-align:center; background:#eff6ff;">
+              </div>
+              <div>
+                <label class="mini">Rigore</label>
+                <input type="number" id="edit-sub-rigore" value="${g.golSubitiRigore || 0}" class="field" style="padding:6px; text-align:center; background:#eff6ff;">
+              </div>
+              <div>
+                <label class="mini">Puniz/Piazz</label>
+                <input type="number" id="edit-sub-piazzato" value="${g.golSubitiPiazzato || 0}" class="field" style="padding:6px; text-align:center; background:#eff6ff;">
+              </div>
+            </div>
+          </div>
+          <button onclick="salvaModificaGiocatore('${nomeOriginaleCodificato}')" class="btn b-blue">\uD83D\uDCBE Salva Modifiche</button>
+        </div>`;
+      showModalHtml(`Modifica: ${esc(g.nome)}`, htmlModale);
+    }
+
+    function salvaModificaGiocatore(nomeOriginale) {
+      const nomeInput = document.getElementById('edit-nome');
+      if (!nomeInput.value.trim()) {
+        nomeInput.style.borderColor = '#ef4444';
+        return;
+      }
+      const datiAggiornati = {
+        nome: nomeInput.value.trim(),
+        saldo: document.getElementById('edit-saldo').value,
+        gol: document.getElementById('edit-gol').value,
+        assist: document.getElementById('edit-assist').value,
+        ammonizioni: document.getElementById('edit-gialli').value,
+        espulsioni: document.getElementById('edit-rossi').value,
+        golSubitiAzione: document.getElementById('edit-sub-azione').value,
+        golSubitiRigore: document.getElementById('edit-sub-rigore').value,
+        golSubitiPiazzato: document.getElementById('edit-sub-piazzato').value
+      };
+      closeModal();
+      eseguiUI('modificaGiocatore', [nomeOriginale, datiAggiornati]);
+    }
+
+    function copiaRefertoWhatsApp(id) {
+      const p = window.datiGlobali.partiteChiuse.find(x => x.id === id);
+      const parts = p.dettagli.split('\n\n');
+      const intestazione = parts[0];
+
+      let txt = `\uD83C\uDFC6 *RISULTATO PARTITA* \uD83C\uDFC6\n\n\uD83D\uDCC5 *Dettagli:* ${intestazione}\n\uD83C\uDFAF *Risultato:* ${p.risultato || 'N/D'}\n\n\uD83D\uDCDD *REFERTO:*\n`;
+      p.referto.forEach(r => {
+        const stats = [];
+        if (r.gol > 0) stats.push(`\u26BD ${r.gol} Gol`);
+        if (r.assist > 0) stats.push(`\uD83D\uDC5F ${r.assist} Assist`);
+        if (r.amm > 0) stats.push(`\uD83D\uDFE8 ${r.amm} Giallo`);
+
+        const sA = parseInt(r.subitiAzione || 0), sR = parseInt(r.subitiRigore || 0), sP = parseInt(r.subitiPiazzato || 0);
+        const subTot = sA + sR + sP;
+        if (subTot > 0) {
+          const dettagliSubiti = [];
+          if (sA > 0) dettagliSubiti.push(`${sA} Azione`);
+          if (sR > 0) dettagliSubiti.push(`${sR} Rigore`);
+          if (sP > 0) dettagliSubiti.push(`${sP} Puniz/Piazz`);
+          stats.push(`\uD83E\uDDE4 ${subTot} Subiti (${dettagliSubiti.join(', ')})`);
+        }
+        if (stats.length > 0) txt += `- *${r.nome}*: ${stats.join(", ")}\n`;
+      });
+
+      copiaNegliAppunti(txt, "Referto copiato e pronto per WhatsApp!");
+      closeModal();
+    }
+
+    function copiaRiepilogoSquadra() {
+      const g = window.datiGlobali.giocatori;
+      if (!g || g.length === 0) return;
+      const nomeSq = leggiNomeSquadra();
+      const attivi = g.filter(x => x.attivo).sort((a, b) => b.saldo - a.saldo);
+      const inattivi = g.filter(x => !x.attivo).sort((a, b) => b.saldo - a.saldo);
+
+      let txt = `\uD83D\uDCCA *${nomeSq.toUpperCase()} - SITUAZIONE SALDI* \uD83D\uDCCA\n\n`;
+      attivi.forEach(x => { txt += `- ${x.nome}: ${x.saldo > 0 ? '+' : ''}${x.saldo.toFixed(2)}\u20AC\n`; });
+      if (inattivi.length > 0) {
+        txt += "\n\u26D4 *Inattivi:*\n";
+        inattivi.forEach(x => { txt += `- ${x.nome}: ${x.saldo > 0 ? '+' : ''}${x.saldo.toFixed(2)}\u20AC\n`; });
+      }
+      txt += `\n\uD83C\uDFE6 *Fondo di Squadra:* ${window.datiGlobali.fondoCassa > 0 ? '+' : ''}${window.datiGlobali.fondoCassa.toFixed(2)}\u20AC\n`;
+      copiaNegliAppunti(txt, "Riepilogo saldi copiato e pronto per WhatsApp!");
+    }
+
+    function copiaNegliAppunti(t, m) {
+      const done = () => {
+        toast("\uD83D\uDCCB " + m);
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          window.location.href = 'whatsapp://send?text=' + encodeURIComponent(t);
+        } else {
+          window.open('https://web.whatsapp.com/', '_blank');
+        }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(done).catch(() => fallbackCopia(t, done));
+      } else {
+        fallbackCopia(t, done);
+      }
+    }
+
+    function fallbackCopia(t, done) {
+      const ta = document.getElementById('appunti-nascosti');
+      ta.value = t;
+      ta.select();
+      document.execCommand('copy');
+      done();
+    }
+
+    function aggiungiNuovo() {
+      const nome = document.getElementById('nuovo-nome').value.trim();
+      if (!nome) return showModal("Errore", "Inserisci il nome del giocatore.", "alert");
+      eseguiUI('aggiungiGiocatore', [nome], () => {
+        document.getElementById('nuovo-nome').value = '';
+      });
+    }
+
+    function chiediConfermaEliminazione(nomeOriginale) {
+      showModal("Conferma Eliminazione", `Sei sicuro di voler eliminare ${nomeOriginale}?\nL'operazione non pu\u00F2 essere annullata.`, "confirm", () => {
+        eseguiUI('eliminaGiocatore', [nomeOriginale]);
+      });
+    }
+
+    function scaricaReport(nome) {
+      const g = window.datiGlobali.giocatori.find(x => x.nome === nome);
+      if (!g) return;
+      let txt = `\uD83D\uDC64 *Statistiche: ${g.nome}*\n\uD83D\uDCB0 Saldo: ${g.saldo > 0 ? '+' : ''}${g.saldo.toFixed(2)}\u20AC\n\uD83C\uDF9F\uFE0F Quota Iscrizione: ${g.quotaIscrizione.toFixed(2)}\u20AC\n\n\u26BD Gol: ${g.gol}\n\uD83D\uDC5F Assist: ${g.assist || 0}\n\uD83D\uDFE8 Gialli: ${g.ammonizioni}\n\uD83D\uDFE5 Rossi: ${g.espulsioni || 0}`;
+      const subTot = (g.golSubitiAzione || 0) + (g.golSubitiRigore || 0) + (g.golSubitiPiazzato || 0);
+      if (subTot > 0) txt += `\n\uD83E\uDDE4 Gol Subiti: ${subTot} (${g.golSubitiAzione || 0} Az, ${g.golSubitiRigore || 0} Rig, ${g.golSubitiPiazzato || 0} Piaz)`;
+      copiaNegliAppunti(txt, "Report individuale copiato e pronto per WhatsApp!");
+    }
+
+    function chiediAnnullaPartita(id) {
+      showModal("Annulla Partita", "Sei sicuro di voler annullare questa partita in attesa?\nVerr\u00E0 eliminata definitivamente senza addebitare costi.", "confirm", () => {
+        eseguiUI('annullaPartita', [id]);
+      });
+    }
+
+    function selezionaTuttiSpesa(seleziona) {
+      document.querySelectorAll('.chk-spesa').forEach(chk => chk.checked = seleziona);
+    }
+
+    function salvaSpesaCondivisa() {
+      const importo = parseFloat(document.getElementById('importo-spesa').value);
+      const causale = document.getElementById('causale-spesa').value.trim();
+      const selezionati = Array.from(document.querySelectorAll('.chk-spesa:checked')).map(c => c.value);
+
+      if (isNaN(importo) || importo <= 0 || !causale) return showModal("Errore", "Inserisci un importo valido e una causale.", "alert");
+      if (selezionati.length === 0) return showModal("Errore", "Seleziona almeno un giocatore con cui dividere la spesa.", "alert");
+
+      eseguiUI('registraSpesaCondivisa', [importo, causale, selezionati]);
+      document.getElementById('importo-spesa').value = '';
+      document.getElementById('causale-spesa').value = '';
+    }
+
+    function apriPopupSceltaFormazione(id) {
+      const p = window.datiGlobali.partiteAperte.find(x => x.id === id);
+      if (!p) return;
+      const parts = p.dettagli.split('\n\n');
+      let txt = "";
+      if (parts.length > 1) {
+        const metaDati = parts[0];
+        const quota = p.convocati.length > 0 ? (p.costo / p.convocati.length).toFixed(2) : 0;
+        txt = `\u26BD *CONVOCAZIONE* \u26BD\n\uD83D\uDCCC ${metaDati}\n\uD83D\uDCB0 Quota: ${quota}\u20AC a testa\n\n${parts.slice(1).join('\n\n').replace(/\uD83D\uDC55/g, '\uD83D\uDC55 *').replace(/:/g, '*:')}`;
+      } else {
+        txt = `\uD83D\uDCCB *CONVOCATI*\n\n\uD83D\uDCC5 ${p.dettagli}\n\n*Partecipanti (${p.convocati.length}):*\n`;
+        p.convocati.forEach(c => txt += `- ${c}\n`);
+      }
+      copiaNegliAppunti(txt, "Formazione copiata e pronta per WhatsApp!");
+    }
+
+    /* --- IMPOSTAZIONI E CONNESSIONE --- */
+    function leggiNomeSquadra() {
+      return localStorage.getItem(KEY_SQUADRA) || 'Pane Sardo di Sil\u00EC';
+    }
+
+    function salvaNomeSquadra() {
+      const nome = document.getElementById('nome-squadra').value.trim() || 'Pane Sardo di Sil\u00EC';
+      localStorage.setItem(KEY_SQUADRA, nome);
+      document.getElementById('nome-squadra-label').innerText = nome;
+      toast("\uD83D\uDCBE Nome squadra salvato: " + nome);
+    }
+
+    function salvaURLServer() {
+      const inp = document.getElementById('url-server');
+      const url = inp.value.trim();
+      if (!url || url.indexOf('script.google.com') === -1) {
+        return showModal('URL non valido', "Incolla l'URL completo della Web App di Google (termina con /exec).", 'alert');
+      }
+      salvaURLServerVal(url);
+      eseguiUI('ottieniDati', [], () => {
+        showModal('Collegato \u2705', "L'app ora legge e scrive sul Foglio Google condiviso. Condividi lo stesso URL qui in Impostazioni con l'altra persona.", 'alert');
+      });
+    }
+
+    function esportaSnapshot() {
+      esegui('ottieniDati', []).then(dati => {
+        const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'copia-calcetto-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast('\uD83D\uDCE5 Copia dei dati scaricata.');
+      }).catch(err => {
+        sbloccaInterfaccia();
+        showModal('Errore', err.message, 'alert');
+      });
+    }
+
+    /* --- MODALE --- */
+    function showModal(title, message, type, confirmCb = null) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-message').innerText = message;
+      document.getElementById('modal-message').classList.remove('hidden');
+      document.getElementById('modal-custom-html').innerHTML = '';
+      costruisciPulsantiModale(type, confirmCb);
+    }
+
+    function showModalHtml(title, htmlContent) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-message').classList.add('hidden');
+      document.getElementById('modal-custom-html').innerHTML = htmlContent;
+      costruisciPulsantiModale('alert', null);
+    }
+
+    function costruisciPulsantiModale(type, confirmCb) {
+      const btns = document.getElementById('modal-buttons');
+      btns.innerHTML = '';
+      const btnClose = document.createElement('button');
+      btnClose.innerText = type === 'alert' ? 'Chiudi' : 'Annulla';
+      btnClose.className = 'mb-cancel';
+      btnClose.onclick = closeModal;
+      btns.appendChild(btnClose);
+      if (type === 'confirm') {
+        const btnConf = document.createElement('button');
+        btnConf.innerText = 'Conferma';
+        btnConf.className = 'mb-confirm';
+        btnConf.onclick = () => { closeModal(); if (confirmCb) confirmCb(); };
+        btns.appendChild(btnConf);
+      }
+      const bd = document.getElementById('modal-backdrop');
+      bd.classList.remove('modal-hidden');
+      bd.classList.add('modal-open');
+      setTimeout(() => bd.classList.add('in'), 10);
+    }
+
+    function closeModal() {
+      const bd = document.getElementById('modal-backdrop');
+      bd.classList.remove('in');
+      setTimeout(() => { bd.classList.add('modal-hidden'); bd.classList.remove('modal-open'); }, 250);
+    }
+
+    /* --- AVVIO --- */
+    document.getElementById('nome-squadra-label').innerText = leggiNomeSquadra();
+    document.getElementById('nome-squadra').value = leggiNomeSquadra();
+    document.getElementById('url-server').value = leggiURLServer();
+    const oggi = new Date();
+    document.getElementById('data-partita').value = oggi.toISOString().slice(0, 10);
+    document.getElementById('amichevole-data').value = oggi.toISOString().slice(0, 10);
+    aggiornaUI({ giocatori: [], fondoCassa: 0, partiteAperte: [], partiteChiuse: [], campi: [] });
+    if (leggiURLServer()) {
+      eseguiUI('ottieniDati', []);
+    } else {
+      document.getElementById('sezione-impostazioni').open = true;
+      showModal('Collega l\u2019app al Foglio', "Apri Impostazioni e incolla l'URL della Web App di Google (termina con /exec).\nI dati restano nel Foglio condiviso: anche l'altra persona vedr\u00E0 gli stessi saldi e partite.", 'alert');
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
